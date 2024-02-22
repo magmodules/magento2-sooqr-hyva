@@ -1,4 +1,4 @@
-![sooqr-hyva](https://github.com/magmodules/magento2-sooqr-hyva-dev/assets/24823946/414fac8f-0be3-4c63-a6e4-31eefbd5488f)
+![414fac8f-0be3-4c63-a6e4-31eefbd5488f](https://github.com/magmodules/magento2-sooqr-hyva/assets/24823946/4437a680-7a6f-4449-af51-50f0c5440a6f)
 
 
 # Sooqr Hyvä Compatibility plugin
