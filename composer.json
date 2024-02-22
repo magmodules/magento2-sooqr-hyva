@@ -1,0 +1,22 @@
+{
+    "name": "magmodules/magento2-sooqr-hyva",
+    "description": "Hyvä Themes Compatibility module for Magmodules Sooqr",
+    "type": "magento2-module",
+    "license": [
+      "OSL-3.0",
+      "AFL-3.0"
+    ],
+    "require": {
+      "magento/framework": "*",
+      "hyva-themes/magento2-compat-module-fallback": "*",
+      "magmodules/magento2-sooqr": "*"
+    },
+    "autoload": {
+      "files": [
+        "src/registration.php"
+      ],
+      "psr-4": {
+        "Magmodules\\HyvaSooqr\\": "src/"
+      }
+    }
+  }

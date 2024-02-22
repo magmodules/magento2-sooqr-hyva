@@ -1,0 +1,129 @@
+<?php
+/**
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magmodules\Sooqr\ViewModel\Search $viewModel
+ */
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Hyva\Theme\ViewModel\SvgIcons;
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\Escaper;
+
+$hyvaicons = $viewModels->require(SvgIcons::class);
+$viewModel = $block->getData('view_model');
+?>
+
+<?php if ($viewModel->isSearchEnabled()): ?>
+    <?php if ($viewModel->getLoaderType() == 'custom'): ?>
+        <script>
+            (function() {
+                var ws = document.createElement('script'); ws.type = 'text/javascript'; ws.async = true;
+                ws.src = ('https:' === document.location.protocol ? 'https://' : 'http://')
+                    + '<?= $block->escapeUrl($viewModel->getSooqrScriptUri()) ?>';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ws, s);
+            })();
+        </script>
+    <?php else: ?>
+        <script>
+            var _wssq = _wssq || [];
+            _wssq.push(['_load', {'suggest': <?= /* @noEscape */ $viewModel->getSooqrOptions() ?>}]);
+            _wssq.push(['suggest._setPosition', 'screen-middle']);
+            _wssq.push(['suggest._setLocale', '<?= $block->escapeHtml($viewModel->getSooqrLanguage()) ?>']);
+
+            <?php if ($viewModel->isTrackingEnabled()): ?>
+                (function() {
+                    var ws = document.createElement('script'); ws.type = 'text/javascript'; ws.async = true;
+                    ws.src = ('https:' == document.location.protocol ? 'https://' : 'http://')
+                        + '<?= $block->escapeUrl($viewModel->getSooqrInsightsUri()) ?>';
+                    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ws, s);
+                })();
+            <?php endif; ?>
+            
+            (function () {
+                var ws = document.createElement('script');
+                ws.type = 'text/javascript';
+                ws.async = true;
+                ws.src = ('https:' === document.location.protocol ? 'https://' : 'http://')
+                    + '<?= $block->escapeUrl($viewModel->getSooqrScriptUri()) ?>';
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(ws, s);
+            })();
+        </script>
+    <?php endif; ?>
+    <?php if ($viewModel->isAjaxAddToCartEnabled()): ?>
+        <div class="flex flex-row justify-center items-center w-full h-full fixed select-none opacity-0 invisible"
+             style="left: 50%;top: 50%;z-index:10000;transform: translateX(-50%) translateY(-50%);background: rgba(255,255,255,.7);transition: .3s;"
+             data-sooqr="hyva-loader">
+
+            <?= $hyvaicons->loaderHtml('text-primary', 57, 57); ?>
+            <div class="ml-10 text-primary text-xl">
+                <?= $escaper->escapeHtml(__('Loading...')) ?>
+            </div>
+        </div>
+
+        <script>
+            (function() {
+                var _wssq = _wssq || [];
+
+                let addToCartButton = null,
+                    productName = '';
+
+                const loader = document.querySelector('[data-sooqr="hyva-loader"]');
+                
+                document.body.addEventListener('submit', (e) => {
+                    if (e.target.closest('.sqrAddToCart')) {
+                        e.preventDefault();
+
+                        const box = e.target.closest('.sqr-resultItem');
+                        productName = box.querySelector('a[rel="title"]').text;
+
+                        const form = e.target.closest('.sqrAddToCart');
+                        const URL = `${location.origin}${form.getAttribute('action')}`;
+
+                        const data = new FormData(e.target);
+                        const value = Object.fromEntries(data.entries());
+                        const params = new URLSearchParams(value).toString();
+
+                        addToCartButton = form.querySelector('button[type="submit"]');
+                        addToCartButton.classList.add('opacity-50', 'pointer-events-none');
+                        loader.classList.remove('opacity-0', 'invisible');
+                        
+                        fetch(`${URL}?${params}`).then((response) => {
+                            if (response.status === 200) {
+                                hyva.setCookie('mage-cache-sessid', '', -1, true);
+                                window.dispatchEvent(new CustomEvent('reload-customer-section-data'));
+                            }
+                        }).catch((error) => {
+                            document.querySelector('.sqr-closeButton').click();
+                            addToCartButton.classList.remove('opacity-50', 'pointer-events-none');
+                            loader.classList.add('opacity-0', 'invisible');
+
+                            window.dispatchMessages([
+                                {
+                                    type: 'error',
+                                    text: `<?= $escaper->escapeHtml(__('Something went wrong while adding product to the cart. Please reload page and try again.')) ?>`
+                                }
+                            ], 5000);
+                        });
+
+                        _wssq.push(['suggest._bindEvent', 'updateResults', () => {}]);
+                    }
+                })
+
+                window.addEventListener('reload-customer-section-data', () => {
+                    if (addToCartButton && productName) {
+                        addToCartButton.classList.remove('opacity-50', 'pointer-events-none');
+                        loader.classList.add('opacity-0', 'invisible');
+
+                        window.dispatchMessages([
+                            {
+                                type: 'success',
+                                text: `<?= $escaper->escapeHtml(__('You added')) ?> ${productName} <?= $escaper->escapeHtml(__('to your shopping cart')) ?>.`
+                            }
+                        ], 5000);
+                    }
+                });
+            })();
+        </script>
+    <?php endif; ?>
+<?php endif; ?>
